@@ -1,0 +1,23 @@
+version: "3"
+
+vars:
+  COMPOSE: docker compose --env-file .env -f deployments/docker-compose.yml
+
+tasks:
+  up:
+    desc: Start Postgres and Redis
+    cmds: ["{{.COMPOSE}} up -d"]
+  down:
+    desc: Stop containers (data kept)
+    cmds: ["{{.COMPOSE}} down"]
+  reset:
+    desc: Stop containers and DELETE all data
+    prompt: This deletes the database volumes. Continue?
+    cmds: ["{{.COMPOSE}} down -v"]
+  ps:
+    cmds: ["{{.COMPOSE}} ps"]
+  logs:
+    cmds: ["{{.COMPOSE}} logs -f"]
+  psql:
+    desc: Open a psql shell
+    cmds: ["{{.COMPOSE}} exec postgres psql -U payrail -d payrail"]
