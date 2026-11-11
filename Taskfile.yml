@@ -1,9 +1,14 @@
 version: "3"
 
+dotenv: [".env"]
+
 vars:
   COMPOSE: docker compose --env-file .env -f deployments/docker-compose.yml
 
 tasks:
+  api:
+    desc: Run the API once (no hot reload )
+    cmds: ["go run ./cmd/api"]
   up:
     desc: Start Postgres and Redis
     cmds: ["{{.COMPOSE}} up -d"]
