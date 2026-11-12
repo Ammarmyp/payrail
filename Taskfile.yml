@@ -26,3 +26,31 @@ tasks:
   psql:
     desc: Open a psql shell
     cmds: ["{{.COMPOSE}} exec postgres psql -U payrail -d payrail"]
+  run:
+    desc: Run the API with hot reload
+    cmds: ["air"]
+  build:
+    desc: Build the API binary into bin/
+    cmds: ["go build -o bin/api.exe ./cmd/api"]
+  test:
+    desc: Run tests
+    cmds: ["go test -cover ./..."]
+  lint:
+    desc: Run golangci-lint
+    cmds: ["golangci-lint run"]
+  fmt:
+    desc: Format code
+    cmds: ["gofmt -w ."]
+  tidy:
+    cmds: ["go mod tidy"]
+
+  migrate:create:
+    desc: "Create a migratoin: task migrate:create --add_ledger"
+    cmds: ["migrate create -ext sql -dir db/migrations -seq {{.CLI_ARGS}}"]
+  migrate:up:
+    cmds: ['migrate -path db/migrations -database "$DATABASE_URL" up']
+  migrate:down:
+    desc: Roll back one migratoin
+    cmds: ['migrate -path db/migrations -database "$DATABASE_URL" down 1']
+  migrate:version:
+    cmds: ['migrate -path db/migrations -database "$DATABASE_URL" version']
