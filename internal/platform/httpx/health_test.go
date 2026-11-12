@@ -26,7 +26,7 @@ func TestReadyz(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			rec := httptest.NewRecorder()
-			req := httptest.NewRequest(http.MethodGet, "/readyz", nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/readyz", nil)
 
 			Readyz(tt.checks).ServeHTTP(rec, req)
 
@@ -39,7 +39,7 @@ func TestReadyz(t *testing.T) {
 
 func TestHealthz(t *testing.T) {
 	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/healthz", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/healthz", nil)
 
 	Healthz().ServeHTTP(rec, req)
 

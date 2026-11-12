@@ -71,14 +71,14 @@ func run() error {
 	case err := <-serverErr:
 		return fmt.Errorf("server failed: %w", err)
 	case <-ctx.Done():
-		log.Info("Shutdown signal recieved")
+		log.Info("Shutdown signal received")
 	}
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
 	if err := srv.Shutdown(shutdownCtx); err != nil {
-		return fmt.Errorf("Graceful shutdown: %w", err)
+		return fmt.Errorf("graceful shutdown: %w", err)
 	}
 
 	log.Info("Server stopped cleanly")

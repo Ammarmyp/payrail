@@ -35,22 +35,50 @@ tasks:
   test:
     desc: Run tests
     cmds: ["go test -cover ./..."]
+  vet:
+    desc: Run go vet
+    cmds: ["go vet ./..."]
   lint:
     desc: Run golangci-lint
     cmds: ["golangci-lint run"]
   fmt:
     desc: Format code
-    cmds: ["gofmt -w ."]
+    cmds: ["golangci-lint fmt."]
+  fmt:check:
+    desc: Fail if any file is not formatted
+    cmds: ["golangci-lint fmt --diff"]
   tidy:
     cmds: ["go mod tidy"]
+  test:cover:
+    desc: Open an HTML coverage report
+    cmds:
+      - go test -coverprofile=coverage.out ./...
+      - go tool cover -html=coverage.out
+  check:
+    desc: Everything CI runs, locally. Run before every push.
+    cmds:
+      - task: fmt:check
+      - task: vet
+      - task: lint
+      - task: test
+
+  #----database migrations----
 
   migrate:create:
-    desc: "Create a migratoin: task migrate:create --add_ledger"
+    desc: "Create a migration: task migrate:create -- add_ledger"
     cmds: ["migrate create -ext sql -dir db/migrations -seq {{.CLI_ARGS}}"]
   migrate:up:
+    desc: Apply all pending migrations
+    preconditions:
+      - sh: test -n "$DATABASE_URL"
+        msg: DATABASE_URL is not set. Check your .env file.
     cmds: ['migrate -path db/migrations -database "$DATABASE_URL" up']
   migrate:down:
-    desc: Roll back one migratoin
+    desc: Roll back one migration
+    preconditions:
+      - sh: test -n "$DATABASE_URL"
+        msg: DATABASE_URL is not set. Check your .env file.
     cmds: ['migrate -path db/migrations -database "$DATABASE_URL" down 1']
   migrate:version:
+    desc: Show the current migration version
     cmds: ['migrate -path db/migrations -database "$DATABASE_URL" version']
