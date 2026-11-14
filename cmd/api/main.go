@@ -13,10 +13,12 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
+	"github.com/Ammarmyp/payrail/internal/auth"
 	"github.com/Ammarmyp/payrail/internal/config"
 	"github.com/Ammarmyp/payrail/internal/platform/database"
 	"github.com/Ammarmyp/payrail/internal/platform/httpx"
 	"github.com/Ammarmyp/payrail/internal/platform/logger"
+	"github.com/Ammarmyp/payrail/internal/user"
 )
 
 func main() {
@@ -41,8 +43,13 @@ func run() error {
 	if err != nil {
 		return fmt.Errorf("connect database: %w", err)
 	}
-
 	defer pool.Close()
+
+	userStore := user.NewPostgresStore(pool)
+	refreshStore := auth.NewPostgresRefreshStore(pool)
+	signer := auth.NewTokenSigner(cfg.JWTSecret, cfg.AccessTTL)
+	authSvc := auth.NewService(userStore, refreshStore, signer, cfg.RefreshTTL, cfg.BcryptCost)
+	authHandler := auth.NewHandler(authSvc, cfg.Env)
 
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID, middleware.Recoverer)
@@ -51,6 +58,11 @@ func run() error {
 	r.Get("/readyz", httpx.Readyz(map[string]httpx.Pinger{
 		"postgres": pool,
 	}))
+
+	r.Route("/v1/auth", func(r chi.Router) {
+		authHandler.Routes(r)
+	})
+	r.With(auth.RequireAuth(signer)).Get("/v1/me", authHandler.Me)
 
 	srv := &http.Server{
 		Addr:              cfg.Addr,

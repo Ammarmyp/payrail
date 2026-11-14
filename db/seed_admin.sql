@@ -1,0 +1,7 @@
+-- Promote or create an admin user for local/dev use.
+-- Prefer promoting an existing signup:
+--   UPDATE users SET role = 'admin' WHERE email = 'you@example.com';
+--
+-- Or insert directly (replace the bcrypt hash with one from your environment):
+--   INSERT INTO users (email, password_hash, role)
+--   VALUES ('admin@example.com', '$2a$12$REPLACE_ME', 'admin');
